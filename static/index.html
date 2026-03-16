@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR Automation</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+    font-family: Tahoma, "MS Sans Serif", Arial, sans-serif;
+    background: #3a6ea5;
+    padding: 12px;
+    margin: 0;
+    min-height: 100dvh;
+}
+
+nav {
+    max-width: 760px;
+    margin: 0 auto 10px;
+    display: flex;
+    gap: 6px;
+}
+
+nav button {
+    flex: 1;
+    padding: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    background: #e4e4e4;
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    color: #000;
+}
+nav button:active { border-color: #808080 #ffffff #ffffff #808080; }
+nav button.active { background: #0a246a; color: #fff; font-weight: bold; }
+
+.card {
+    background: #ece9d8;
+    padding: 12px;
+    max-width: 760px;
+    margin: auto;
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+}
+
+h2 {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    background: linear-gradient(to right, #0a246a, #a6caf0);
+    color: white;
+    padding: 6px 8px;
+}
+
+h3 {
+    font-size: 12px;
+    margin: 12px 0 4px;
+    background: #d6e4f0;
+    color: #1f3864;
+    padding: 4px 6px;
+    border-left: 3px solid #2f5496;
+}
+
+label {
+    display: block;
+    margin: 6px 0;
+    font-size: 12px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="month"],
+input[type="file"],
+textarea {
+    width: 100%;
+    padding: 6px;
+    font-size: 13px;
+    background: white;
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+}
+
+input[type="number"] { background: #fffde7; }
+input[type="month"]  { background: #fffde7; }
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+textarea {
+    height: 140px;
+    font-family: "Courier New", monospace;
+    resize: vertical;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    margin-right: 6px;
+    transform: scale(1.1);
+}
+
+.btn-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+button.submit {
+    flex: 1;
+    min-width: 140px;
+    padding: 10px 8px;
+    font-size: 13px;
+    background: #e4e4e4;
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    cursor: pointer;
+    white-space: nowrap;
+}
+button.submit:active  { border-color: #808080 #ffffff #ffffff #808080; }
+button.submit:disabled { opacity: .5; cursor: not-allowed; }
+
+button.primary {
+    background: #0a246a;
+    color: #fff;
+    border-color: #4a64aa #000033 #000033 #4a64aa;
+}
+button.primary:active { border-color: #000033 #4a64aa #4a64aa #000033; }
+
+button.green {
+    background: #2d6a2d;
+    color: #fff;
+    border-color: #5a9a5a #1a3d1a #1a3d1a #5a9a5a;
+}
+button.green:active { border-color: #1a3d1a #5a9a5a #5a9a5a #1a3d1a; }
+
+.status {
+    margin-top: 10px;
+    font-size: 12px;
+    background: #ffffe1;
+    border: 1px solid #808080;
+    padding: 6px;
+    word-wrap: break-word;
+    min-height: 28px;
+}
+.status.ok   { background: #d4edda; border-color: #28a745; color: #155724; }
+.status.erro { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+.status.info { background: #fff3cd; border-color: #ffc107; color: #856404; }
+
+.spin {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border: 2px solid #aaa;
+    border-top-color: #333;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.hint {
+    font-size: 11px;
+    color: #666;
+    margin: -4px 0 6px;
+    font-style: italic;
+}
+
+.mes-preview {
+    font-size: 12px;
+    color: #2d6a2d;
+    font-weight: bold;
+    padding: 8px 0 0;
+}
+
+@media (max-width: 600px) {
+    nav { flex-direction: column; }
+    nav button { font-size: 14px; padding: 12px; }
+    .card { padding: 10px; }
+    h2 { font-size: 14px; }
+    label, input, textarea, button.submit { font-size: 14px; }
+    button.submit { padding: 14px 8px; }
+    textarea { height: 180px; }
+    .btn-row { flex-direction: column; }
+    button.submit { min-width: unset; width: 100%; }
+    .two-col { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <button id="btnExcel"    class="active" onclick="show('excel')">📊 Extrato Sicoob</button>
+  <button id="btnCaixa"                  onclick="show('caixa')">🧾 Baixa de Caixa</button>
+  <button id="btnCompleto"               onclick="show('completo')">📋 Rel. Completo</button>
+</nav>
+
+<!-- ABA 1 — Extrato Sicoob -->
+<div id="excel" class="card">
+  <h2>Extrato Sicoob</h2>
+  <form id="formRelatorio">
+    <label>Arquivo PDF</label>
+    <input type="file" name="file" accept="application/pdf" required>
+    <label>Texto inicial</label>
+    <input type="text" name="first_item" value="SALDO DO DIA">
+    <label>Texto final</label>
+    <input type="text" name="last_item" value="SALDO BLOQ.ANTERIOR">
+    <div class="btn-row">
+      <button class="submit" type="submit">⬇ Baixar Excel (interno)</button>
+      <button class="submit primary" type="button" id="btnMaster">☁ Planilha Mestre</button>
+      <button class="submit green"   type="button" id="btnClienteSicoob">📄 Relatório Cliente</button>
+    </div>
+  </form>
+  <div class="status" id="statusExcel">Aguardando arquivo…</div>
+</div>
+
+<!-- ABA 2 — Baixa de Caixa -->
+<div id="caixa" class="card" style="display:none">
+  <h2>Baixa de Caixa</h2>
+  <form id="formCaixa">
+    <label><input type="radio" name="mode" value="single" checked> Extrair 1 PDF</label>
+    <label><input type="radio" name="mode" value="multi"> Extrair múltiplos PDFs</label>
+    <label><input type="checkbox" name="include_date"> Incluir data</label>
+    <label><input type="checkbox" name="dashed_lines"> Linhas tracejadas</label>
+    <input type="file" name="files" accept="application/pdf" multiple required>
+    <div class="btn-row">
+      <button class="submit" id="btnExtrair" type="submit">🔍 Executar Extração</button>
+      <button class="submit" type="button" id="exportPdfBtn">⬇ Exportar Excel</button>
+      <button class="submit green" type="button" id="btnClienteCaixa">📄 Relatório Cliente</button>
+    </div>
+  </form>
+  <textarea id="output" readonly placeholder="Resultado aparece aqui…"></textarea>
+  <div class="status" id="statusCaixa"></div>
+</div>
+
+<!-- ABA 3 — Relatório Completo -->
+<div id="completo" class="card" style="display:none">
+  <h2>Relatório Completo do Cliente</h2>
+  <form id="formCompleto">
+
+    <h3>📄 PDF do Extrato Sicoob</h3>
+    <input type="file" name="file_sicoob" accept="application/pdf" required>
+    <label>Texto inicial</label>
+    <input type="text" name="first_item" value="SALDO DO DIA">
+    <label>Texto final</label>
+    <input type="text" name="last_item" value="SALDO BLOQ.ANTERIOR">
+
+    <h3>🧾 PDFs de Fechamento de Caixa (opcional)</h3>
+    <input type="file" name="files_caixa" accept="application/pdf" multiple>
+    <p class="hint">Selecione um ou mais PDFs. Deixe em branco para omitir as abas de caixa.</p>
+
+    <h3>📅 Período de referência</h3>
+    <p class="hint">Escolha o mês que aparecerá no cabeçalho de todas as abas da planilha.</p>
+    <div class="two-col">
+      <div>
+        <label>Mês de referência</label>
+        <input type="month" id="mesRefInput" name="mes_ref_raw">
+      </div>
+      <div>
+        <div class="mes-preview" id="mesRefPreview">Selecione um mês →</div>
+      </div>
+    </div>
+
+    <h3>👤 Validação de Sócios</h3>
+    <p class="hint">
+      Lançamentos cujo <strong>Nome, CPF, CNPJ, OBS ou Descrição</strong> contenham esses termos
+      serão classificados como <strong>Retirada Sócio</strong> na DRE — excluídos das saídas normais.
+      Vale também para Sangrias.
+    </p>
+    <label>Nomes / termos dos sócios <span style="color:#888">(separados por vírgula)</span></label>
+    <input type="text" id="sociosInput" placeholder="ex: ranielle, assem, joao silva"
+           value="ranielle, assem" style="background:#f5eef8;">
+
+    <h3>💰 Inputs mensais</h3>
+    <p class="hint">Células amarelas da planilha — preencha os valores do mês.</p>
+    <div class="two-col">
+      <div>
+        <label>Saldo inicial conta bancária (R$)</label>
+        <input type="number" name="saldo_inicial" value="0" step="0.01" min="0">
+      </div>
+      <div>
+        <label>Saldo caixa espécie mês anterior (R$)</label>
+        <input type="number" name="saldo_caixa_ant" value="0" step="0.01" min="0">
+      </div>
+      <div>
+        <label>Retirada fundo financeiro (R$)</label>
+        <input type="number" name="retirada_fundo" value="0" step="0.01" min="0">
+      </div>
+      <div>
+        <label>Crédito mês anterior (R$)</label>
+        <input type="number" name="credito_31_12" value="0" step="0.01" min="0">
+      </div>
+      <div>
+        <label>Débito mês anterior (R$)</label>
+        <input type="number" name="debito_31_12" value="0" step="0.01" min="0">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="submit green" type="submit">📋 Gerar Relatório Completo</button>
+    </div>
+  </form>
+  <div class="status" id="statusCompleto">Preencha os campos e clique em Gerar.</div>
+</div>
+
+<script>
+const BASE = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+  ? "http://127.0.0.1:8000"
+  : "https://pr-automation-42m8.onrender.com";
+
+// ── navegação ─────────────────────────────────────────────────────────────
+function show(id) {
+  ["excel","caixa","completo"].forEach(p => document.getElementById(p).style.display = "none");
+  ["btnExcel","btnCaixa","btnCompleto"].forEach(b => document.getElementById(b).classList.remove("active"));
+  document.getElementById(id).style.display = "block";
+  document.getElementById("btn" + id.charAt(0).toUpperCase() + id.slice(1)).classList.add("active");
+}
+
+function setStatus(el, tipo, html) {
+  el.className = "status " + tipo;
+  el.innerHTML = html;
+}
+
+function _download(blob, nome) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── Calendário: converte "2026-03" → "Março/2026" ─────────────────────────
+const MESES_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+                  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+function mesRefStr(raw) {
+  if (!raw) return "";
+  const [ano, mes] = raw.split("-");
+  return `${MESES_PT[parseInt(mes, 10) - 1]}/${ano}`;
+}
+
+document.getElementById("mesRefInput").addEventListener("change", function() {
+  const label = this.value ? "✓ " + mesRefStr(this.value) : "Selecione um mês →";
+  const el = document.getElementById("mesRefPreview");
+  el.textContent = label;
+  el.style.color = this.value ? "#2d6a2d" : "#666";
+});
+
+// Define mês atual como padrão
+(function() {
+  const hoje = new Date();
+  const inp  = document.getElementById("mesRefInput");
+  inp.value  = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+  inp.dispatchEvent(new Event("change"));
+})();
+
+// ── ABA 1: baixar Excel interno ───────────────────────────────────────────
+const formRelatorio = document.getElementById("formRelatorio");
+const statusExcel   = document.getElementById("statusExcel");
+
+formRelatorio.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  setStatus(statusExcel, "info", '<span class="spin"></span>Processando…');
+  try {
+    const res = await fetch(`${BASE}/relatorio/sicoob`, { method:"POST", body: new FormData(formRelatorio) });
+    if (!res.ok) throw new Error(await res.text());
+    _download(await res.blob(), "relatorio_sicoob.xlsx");
+    setStatus(statusExcel, "ok", "✔ Download iniciado.");
+  } catch (err) { setStatus(statusExcel, "erro", "❌ " + err.message); }
+});
+
+// ── ABA 1: planilha mestre ────────────────────────────────────────────────
+document.getElementById("btnMaster").addEventListener("click", async () => {
+  if (!formRelatorio.querySelector('input[type="file"]').files.length)
+    return setStatus(statusExcel, "erro", "❌ Selecione um PDF.");
+  setStatus(statusExcel, "info", '<span class="spin"></span>Enviando para OneDrive…');
+  try {
+    const res  = await fetch(`${BASE}/relatorio/sicoob/master`, { method:"POST", body: new FormData(formRelatorio) });
+    const data = await res.json();
+    if (res.ok && data.status === "ok") setStatus(statusExcel, "ok", `✔ ${data.mensagem}`);
+    else throw new Error(data.detail || data.erro || "Erro desconhecido");
+  } catch (err) { setStatus(statusExcel, "erro", "❌ " + err.message); }
+});
+
+// ── ABA 1: relatório cliente (só Sicoob) ──────────────────────────────────
+document.getElementById("btnClienteSicoob").addEventListener("click", async () => {
+  if (!formRelatorio.querySelector('input[type="file"]').files.length)
+    return setStatus(statusExcel, "erro", "❌ Selecione um PDF.");
+  setStatus(statusExcel, "info", '<span class="spin"></span>Gerando relatório do cliente…');
+  try {
+    const res = await fetch(`${BASE}/cliente/sicoob`, { method:"POST", body: new FormData(formRelatorio) });
+    if (!res.ok) throw new Error(await res.text());
+    _download(await res.blob(), "relatorio_cliente_sicoob.xlsx");
+    setStatus(statusExcel, "ok", "✔ Download iniciado.");
+  } catch (err) { setStatus(statusExcel, "erro", "❌ " + err.message); }
+});
+
+// ── ABA 2: extrair texto ──────────────────────────────────────────────────
+const formCaixa   = document.getElementById("formCaixa");
+const output      = document.getElementById("output");
+const statusCaixa = document.getElementById("statusCaixa");
+
+formCaixa.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  output.value = "";
+  setStatus(statusCaixa, "info", '<span class="spin"></span>Processando…');
+  try {
+    const res  = await fetch(`${BASE}/extrair`, { method:"POST", body: new FormData(formCaixa) });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    output.value = ["Vendas por Forma de Pagamento:",...data.spp,"","Descontos / Saídas:",...data.dsc,"","Vendas por Funcionário:",...data.spf].join("\n");
+    setStatus(statusCaixa, "ok", "✔ Extração concluída.");
+  } catch (err) { setStatus(statusCaixa, "erro", "❌ " + err.message); }
+});
+
+// ── ABA 2: exportar Excel ─────────────────────────────────────────────────
+document.getElementById("exportPdfBtn").addEventListener("click", async () => {
+  if (!formCaixa.querySelector('input[type="file"]').files.length)
+    return setStatus(statusCaixa, "erro", "❌ Selecione ao menos um PDF.");
+  setStatus(statusCaixa, "info", '<span class="spin"></span>Gerando Excel…');
+  try {
+    const res = await fetch(`${BASE}/exportar`, { method:"POST", body: new FormData(formCaixa) });
+    if (!res.ok) throw new Error(await res.text());
+    _download(await res.blob(), "baixa_de_caixa.xlsx");
+    setStatus(statusCaixa, "ok", "✔ Download concluído.");
+  } catch (err) { setStatus(statusCaixa, "erro", "❌ " + err.message); }
+});
+
+// ── ABA 2: relatório cliente (só caixa) ──────────────────────────────────
+document.getElementById("btnClienteCaixa").addEventListener("click", async () => {
+  if (!formCaixa.querySelector('input[type="file"]').files.length)
+    return setStatus(statusCaixa, "erro", "❌ Selecione ao menos um PDF.");
+  setStatus(statusCaixa, "info", '<span class="spin"></span>Gerando relatório do cliente…');
+  try {
+    const res = await fetch(`${BASE}/cliente/caixa`, { method:"POST", body: new FormData(formCaixa) });
+    if (!res.ok) throw new Error(await res.text());
+    _download(await res.blob(), "relatorio_cliente_caixa.xlsx");
+    setStatus(statusCaixa, "ok", "✔ Download iniciado.");
+  } catch (err) { setStatus(statusCaixa, "erro", "❌ " + err.message); }
+});
+
+// ── ABA 3: relatório completo ─────────────────────────────────────────────
+const formCompleto   = document.getElementById("formCompleto");
+const statusCompleto = document.getElementById("statusCompleto");
+
+formCompleto.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const sicoobFile = formCompleto.querySelector('[name="file_sicoob"]').files[0];
+  if (!sicoobFile) return setStatus(statusCompleto, "erro", "❌ Selecione o PDF do extrato Sicoob.");
+
+  setStatus(statusCompleto, "info", '<span class="spin"></span>Gerando relatório completo…');
+
+  const fd = new FormData();
+  fd.append("file_sicoob",    sicoobFile);
+  fd.append("first_item",     formCompleto.querySelector('[name="first_item"]').value);
+  fd.append("last_item",      formCompleto.querySelector('[name="last_item"]').value);
+  fd.append("mes_ref",        mesRefStr(document.getElementById("mesRefInput").value));
+  fd.append("socios_raw",     document.getElementById("sociosInput").value);
+  fd.append("saldo_inicial",  formCompleto.querySelector('[name="saldo_inicial"]').value);
+  fd.append("saldo_caixa_ant",formCompleto.querySelector('[name="saldo_caixa_ant"]').value);
+  fd.append("retirada_fundo", formCompleto.querySelector('[name="retirada_fundo"]').value);
+  fd.append("credito_31_12",  formCompleto.querySelector('[name="credito_31_12"]').value);
+  fd.append("debito_31_12",   formCompleto.querySelector('[name="debito_31_12"]').value);
+
+  const caixaFiles = formCompleto.querySelector('[name="files_caixa"]').files;
+  for (const f of caixaFiles) fd.append("files_caixa", f);
+
+  try {
+    const res = await fetch(`${BASE}/cliente/completo`, { method:"POST", body: fd });
+    if (!res.ok) throw new Error(await res.text());
+    _download(await res.blob(), "relatorio_cliente_completo.xlsx");
+    setStatus(statusCompleto, "ok", "✔ Relatório completo gerado — download iniciado.");
+  } catch (err) { setStatus(statusCompleto, "erro", "❌ " + err.message); }
+});
+</script>
+</body>
+</html>

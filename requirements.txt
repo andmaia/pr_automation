@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pandas
+openpyxl
+httpx
+python-dotenv
+pdfplumber
+reportlab
+jinja2
